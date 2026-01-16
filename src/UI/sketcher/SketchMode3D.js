@@ -5,6 +5,7 @@ import { ConstraintSolver } from "../../features/sketch/sketchSolver2D/Constrain
 import { updateListHighlights, applyHoverAndSelectionColors } from "./highlights.js";
 import { renderDimensions as dimsRender } from "./dimensions.js";
 import { AccordionWidget } from "../AccordionWidget.js";
+import { SketchUndoManager } from "./SketchUndoManager.js";
 
 export class SketchMode3D {
   constructor(viewer, featureID) {
@@ -48,6 +49,8 @@ export class SketchMode3D {
     // No clipping plane; orientation must do the work
     // Reference object used for plane basis/orientation
     this._refObj = null;
+    // Undo/redo manager for sketch operations
+    this._undoManager = null;
   }
 
   open() {
@@ -178,6 +181,20 @@ export class SketchMode3D {
       tolerance: 0.00001,
       decimalPlaces: 6
     };
+
+    // Initialize undo/redo manager for sketch mode
+    this._undoManager = new SketchUndoManager(this._solver, {
+      debug: false,
+      maxStackSize: 50,
+      minSnapshotInterval: 0, // No rate limiting in sketch mode (operations are discrete)
+    });
+
+    // Take initial snapshot of the sketch state
+    try {
+      this._undoManager.snapshot();
+    } catch (error) {
+      console.warn('[SketchMode3D] Failed to take initial snapshot:', error);
+    }
 
     // Load persisted dimension offsets (plane-space {du,dv}) if present
     try {
