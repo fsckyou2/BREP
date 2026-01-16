@@ -339,9 +339,52 @@ export class SketchMode3D {
             this._selection.clear();
             this.#rebuildSketchGraphics();
             this.#refreshContextBar();
+
+            // Take snapshot after deletion
+            try {
+              if (this._undoManager) {
+                this._undoManager.snapshot();
+              }
+            } catch (err) {
+              console.warn('[SketchMode3D] Failed to snapshot after deletion:', err);
+            }
+
             try { ev.preventDefault(); ev.stopPropagation(); } catch { }
           }
         }
+        return;
+      }
+
+      // Undo: Ctrl+Z (or Cmd+Z on Mac)
+      if ((ev.ctrlKey || ev.metaKey) && k === 'z' && !ev.shiftKey) {
+        if (this._undoManager && this._undoManager.canUndo()) {
+          try {
+            this._undoManager.undo();
+            this.#rebuildSketchGraphics();
+            this.#refreshContextBar();
+            ev.preventDefault();
+            ev.stopPropagation();
+          } catch (err) {
+            console.warn('[SketchMode3D] Undo failed:', err);
+          }
+        }
+        return;
+      }
+
+      // Redo: Ctrl+Shift+Z or Ctrl+Y (or Cmd on Mac)
+      if ((ev.ctrlKey || ev.metaKey) && ((k === 'z' && ev.shiftKey) || k === 'y')) {
+        if (this._undoManager && this._undoManager.canRedo()) {
+          try {
+            this._undoManager.redo();
+            this.#rebuildSketchGraphics();
+            this.#refreshContextBar();
+            ev.preventDefault();
+            ev.stopPropagation();
+          } catch (err) {
+            console.warn('[SketchMode3D] Redo failed:', err);
+          }
+        }
+        return;
       }
     };
     window.addEventListener('keydown', this._onKeyDown, { passive: true });
@@ -438,6 +481,14 @@ export class SketchMode3D {
       }
     } catch { }
     this._hiddenSketches = [];
+
+    // Clear undo/redo stack when closing sketch mode
+    try {
+      if (this._undoManager) {
+        this._undoManager.clear();
+        this._undoManager = null;
+      }
+    } catch { }
 
     // Restore toolbar buttons
     try {
@@ -597,6 +648,13 @@ export class SketchMode3D {
             this.#rebuildSketchGraphics();
             this.#refreshLists();
             this.#refreshContextBar();
+
+            // Snapshot after line creation
+            try {
+              if (this._undoManager) this._undoManager.snapshot();
+            } catch (err) {
+              console.warn('[SketchMode3D] Failed to snapshot after line creation:', err);
+            }
           }
         } else if (this._tool === "circle") {
           this.#toggleSelection({ type: "point", id: pid });
@@ -609,6 +667,13 @@ export class SketchMode3D {
             this.#rebuildSketchGraphics();
             this.#refreshLists();
             this.#refreshContextBar();
+
+            // Snapshot after circle creation
+            try {
+              if (this._undoManager) this._undoManager.snapshot();
+            } catch (err) {
+              console.warn('[SketchMode3D] Failed to snapshot after circle creation:', err);
+            }
           }
         } else if (this._tool === "rect") {
           this.#toggleSelection({ type: "point", id: pid });
@@ -621,6 +686,13 @@ export class SketchMode3D {
             this.#rebuildSketchGraphics();
             this.#refreshLists();
             this.#refreshContextBar();
+
+            // Snapshot after rectangle creation
+            try {
+              if (this._undoManager) this._undoManager.snapshot();
+            } catch (err) {
+              console.warn('[SketchMode3D] Failed to snapshot after rectangle creation:', err);
+            }
           }
         } else if (this._tool === "arc") {
           // Center -> start -> end ordering
@@ -642,6 +714,13 @@ export class SketchMode3D {
             this.#rebuildSketchGraphics();
             this.#refreshLists();
             this.#refreshContextBar();
+
+            // Snapshot after arc creation
+            try {
+              if (this._undoManager) this._undoManager.snapshot();
+            } catch (err) {
+              console.warn('[SketchMode3D] Failed to snapshot after arc creation:', err);
+            }
           }
         } else if (this._tool === "bezier") {
           // Cubic Bezier: end0, ctrl0, ctrl1, end1 (4 points)
@@ -671,6 +750,13 @@ export class SketchMode3D {
             this.#rebuildSketchGraphics();
             this.#refreshLists();
             this.#refreshContextBar();
+
+            // Snapshot after bezier creation
+            try {
+              if (this._undoManager) this._undoManager.snapshot();
+            } catch (err) {
+              console.warn('[SketchMode3D] Failed to snapshot after bezier creation:', err);
+            }
           }
         }
       }
@@ -1886,6 +1972,13 @@ export class SketchMode3D {
           this._solver.createConstraint(type, items);
           this.#refreshLists();
           this.#refreshContextBar();
+
+          // Snapshot after constraint creation
+          try {
+            if (this._undoManager) this._undoManager.snapshot();
+          } catch (err) {
+            console.warn('[SketchMode3D] Failed to snapshot after constraint creation:', err);
+          }
         },
       });
     const addDeleteButton = () =>

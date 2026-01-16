@@ -22,6 +22,16 @@ const cssEscape = (value) => {
 };
 
 // Register built-in annotation types
+
+// TODO: Add undo/redo support for PMI Mode
+// Similar to SketchMode3D implementation:
+// 1. Create PMIUndoManager (similar to SketchUndoManager)
+// 2. Serialize/deserialize AnnotationHistory state
+// 3. Hook up snapshots after annotation create/remove/modify operations
+// 4. Add Ctrl+Z/Ctrl+Y keyboard shortcuts
+// 5. Clear undo stack when PMI mode closes
+// See SketchMode3D.js and SketchUndoManager.js for reference implementation
+
 export class PMIMode {
   /**
    * @param {Viewer} viewer

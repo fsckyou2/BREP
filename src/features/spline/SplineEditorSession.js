@@ -10,6 +10,15 @@ import {
 
 const noop = () => { };
 
+// TODO: Add undo/redo support for Spline Editor
+// Similar to SketchMode3D implementation:
+// 1. Create SplineUndoManager (similar to SketchUndoManager)
+// 2. Serialize/deserialize _splineData state (control points, tangents)
+// 3. Hook up snapshots after control point add/remove/move operations
+// 4. Add Ctrl+Z/Ctrl+Y keyboard shortcuts
+// 5. Clear undo stack when editor closes
+// See SketchMode3D.js and SketchUndoManager.js for reference implementation
+
 export class SplineEditorSession {
   constructor(viewer, featureID, options = {}) {
     this.viewer = viewer || null;
